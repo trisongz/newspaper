@@ -100,8 +100,10 @@ class GNewsResult(BaseModel):
 
     async def async_build(self) -> GNewsArticle:
         if not self.built:
-            await self.get_article().async_build()
-            self.built = True
+            try:
+                await self.get_article().async_build()
+                self.built = True
+            except: pass
         return self.built_article
     
     async def async_dumps(self, props: List[str] = None):

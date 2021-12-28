@@ -7,7 +7,7 @@ View newspaper/__init__.py for its usage.
 __title__ = 'newspaper'
 __author__ = 'Tri Songz'
 __license__ = 'MIT'
-__copyright__ = 'Original Copyright 2014, Lucas Ou-Yang, Updated Copyright 2021, Tri Songz'
+__copyright__ = 'Original Copyright 2014, Lucas Ou-Yang et al., Updated Copyright 2021, Tri Songz'
 
 import feedparser
 
