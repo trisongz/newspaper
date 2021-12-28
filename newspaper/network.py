@@ -4,12 +4,17 @@ All code involving requests and responses over the http network
 must be abstracted in this file.
 """
 __title__ = 'newspaper'
-__author__ = 'Lucas Ou-Yang'
+__author__ = 'Tri Songz'
 __license__ = 'MIT'
-__copyright__ = 'Copyright 2014, Lucas Ou-Yang'
+__copyright__ = 'Original Copyright 2014, Lucas Ou-Yang et al., Updated Copyright 2021, Tri Songz'
 
 import logging
 import requests
+""" 
+Replacing requests
+with async httpx client
+"""
+import httpx
 
 from .configuration import Configuration
 from .mthreading import ThreadPool
@@ -34,15 +39,35 @@ def get_request_kwargs(timeout, useragent, proxies, headers):
     }
 
 
+def get_httpx_kwargs(timeout, useragent, proxies, headers):
+    """This Wrapper method exists b/c some values in req_kwargs dict
+    are methods which need to be called every time we make a request
+    """
+    return {
+        'headers': headers if headers else {'User-Agent': useragent},
+        'cookies': cj(),
+        'timeout': timeout,
+        'proxies': proxies
+    }
+
 def get_html(url, config=None, response=None):
     """HTTP response code agnostic
     """
     try:
         return get_html_2XX_only(url, config, response)
-    except requests.exceptions.RequestException as e:
+    except httpx.RequestError as e:
         log.debug('get_html() error. %s on URL: %s' % (e, url))
         return ''
 
+
+async def async_get_html(url, config=None, response=None):
+    """HTTP response code agnostic
+    """
+    try:
+        return await async_get_html_2XX_only(url, config, response)
+    except httpx.RequestError as e:
+        log.debug('get_html() error. %s on URL: %s' % (e, url))
+        return ''
 
 def get_html_2XX_only(url, config=None, response=None):
     """Consolidated logic for http requests from newspaper. We handle error cases:
@@ -56,19 +81,37 @@ def get_html_2XX_only(url, config=None, response=None):
     proxies = config.proxies
     headers = config.headers
 
-    if response is not None:
-        return _get_html_from_response(response, config)
-
-    response = requests.get(
-        url=url, **get_request_kwargs(timeout, useragent, proxies, headers))
+    if response is not None: return _get_html_from_response(response, config)
+    response = httpx.get(url=url, **get_request_kwargs(timeout, useragent, proxies, headers))
 
     html = _get_html_from_response(response, config)
-
     if config.http_success_only:
         # fail if HTTP sends a non 2XX response
         response.raise_for_status()
-
     return html
+
+
+async def async_get_html_2XX_only(url, config=None, response=None):
+    """Consolidated logic for http requests from newspaper. We handle error cases:
+    - Attempt to find encoding of the html by using HTTP header. Fallback to
+      'ISO-8859-1' if not provided.
+    - Error out if a non 2XX HTTP response code is returned.
+    """
+    config = config or Configuration()
+    useragent = config.browser_user_agent
+    timeout = config.request_timeout
+    proxies = config.proxies
+    headers = config.headers
+
+    if response is not None: return _get_html_from_response(response, config)
+    async with httpx.AsyncClient(**get_httpx_kwargs(timeout, useragent, proxies, headers)) as client:
+        response = await client.get(url=url, follow_redirects=True)
+    html = _get_html_from_response(response, config)
+    if config.http_success_only:
+        # fail if HTTP sends a non 2XX response
+        response.raise_for_status()
+    return html
+
 
 
 def _get_html_from_response(response, config):

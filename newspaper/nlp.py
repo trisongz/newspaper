@@ -3,9 +3,9 @@
 Anything natural language related should be abstracted into this file.
 """
 __title__ = 'newspaper'
-__author__ = 'Lucas Ou-Yang'
+__author__ = 'Tri Songz'
 __license__ = 'MIT'
-__copyright__ = 'Copyright 2014, Lucas Ou-Yang'
+__copyright__ = 'Original Copyright 2014, Lucas Ou-Yang et al., Updated Copyright 2021, Tri Songz'
 
 import re
 import math
@@ -14,6 +14,7 @@ from os import path
 from collections import Counter
 
 from . import settings
+from .nltk_utils import Tokenizer
 
 ideal = 20.0
 
@@ -153,9 +154,8 @@ def keywords(text):
 def split_sentences(text):
     """Split a large string into sentences
     """
-    import nltk.data
-    tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
-
+    tokenizer = Tokenizer.get('punkt', 'tokenizers/punkt/english.pickle')
+    #nltk.data.load('tokenizers/punkt/english.pickle')
     sentences = tokenizer.tokenize(text)
     sentences = [x.replace('\n', '') for x in sentences if len(x) > 10]
     return sentences

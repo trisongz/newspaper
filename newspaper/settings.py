@@ -4,9 +4,9 @@ Unlike configuration.py, this file is meant for static, entire project
 encompassing settings, like memoization and caching file directories.
 """
 __title__ = 'newspaper'
-__author__ = 'Lucas Ou-Yang'
+__author__ = 'Tri Songz'
 __license__ = 'MIT'
-__copyright__ = 'Copyright 2014, Lucas Ou-Yang'
+__copyright__ = 'Original Copyright 2014, Lucas Ou-Yang et al., Updated Copyright 2021, Tri Songz'
 
 import logging
 import os

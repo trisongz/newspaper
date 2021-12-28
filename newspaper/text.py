@@ -3,14 +3,14 @@
 Stopword extraction and stopword classes.
 """
 __title__ = 'newspaper'
-__author__ = 'Lucas Ou-Yang'
+__author__ = 'Tri Songz'
 __license__ = 'MIT'
-__copyright__ = 'Copyright 2014, Lucas Ou-Yang'
+__copyright__ = 'Original Copyright 2014, Lucas Ou-Yang et al., Updated Copyright 2021, Tri Songz'
 
 import os
 import re
 import string
-
+from .nltk_utils import nltk
 from .utils import FileHelper
 
 TABSSPACE = re.compile(r'[\s\t]+')
@@ -125,7 +125,6 @@ class StopWordsArabic(StopWords):
         return content
 
     def candidate_words(self, stripped_input):
-        import nltk
         s = nltk.stem.isri.ISRIStemmer()
         words = []
         for word in nltk.tokenize.wordpunct_tokenize(stripped_input):

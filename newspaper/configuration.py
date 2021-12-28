@@ -6,9 +6,9 @@ holds them. For example, pass in a config object to an Article
 object, Source object, or even network methods, and it just works.
 """
 __title__ = 'newspaper'
-__author__ = 'Lucas Ou-Yang'
+__author__ = 'Tri Songz'
 __license__ = 'MIT'
-__copyright__ = 'Copyright 2014, Lucas Ou-Yang'
+__copyright__ = 'Original Copyright 2014, Lucas Ou-Yang, Updated Copyright 2021, Tri Songz'
 
 import logging
 

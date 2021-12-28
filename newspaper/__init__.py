@@ -3,13 +3,14 @@
 Wherever smart people work, doors are unlocked. -- Steve Wozniak
 """
 __title__ = 'newspaper'
-__author__ = 'Lucas Ou-Yang'
+__author__ = 'Tri Songz'
 __license__ = 'MIT'
-__copyright__ = 'Copyright 2014, Lucas Ou-Yang'
+__copyright__ = 'Original Copyright 2014, Lucas Ou-Yang et al., Updated Copyright 2021, Tri Songz'
 
 from .api import (build, build_article, fulltext, hot, languages,
                   popular_urls, Configuration as Config)
 from .article import Article, ArticleException
+from .gnews import GNews, GNewsCache
 from .mthreading import NewsPool
 from .source import Source
 from .version import __version__

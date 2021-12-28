@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 __title__ = 'newspaper'
-__author__ = 'Lucas Ou-Yang'
+__author__ = 'Tri Songz'
 __license__ = 'MIT'
-__copyright__ = 'Copyright 2014, Lucas Ou-Yang'
+__copyright__ = 'Original Copyright 2014, Lucas Ou-Yang et al., Updated Copyright 2021, Tri Songz'
 
 import logging
 import copy
@@ -10,7 +10,12 @@ import os
 import glob
 from urllib.parse import urlparse
 
-import requests
+#import requests
+""" 
+Replacing requests
+with async httpx client
+"""
+import httpx
 
 from . import images
 from . import network
@@ -151,7 +156,17 @@ class Article(object):
         self.clean_doc = None
 
         # A property dict for users to store custom data.
-        self.additional_data = {}
+        self.additional_data = {'num_sentences': 0, 'num_words': 0}
+
+
+    @property
+    def num_sentences(self):
+        return self.additional_data.get('num_sentences', 0)
+    
+    @property
+    def num_words(self):
+        return self.additional_data.get('num_words', 0)
+
 
     def build(self):
         """Build a lone article from a URL independent of the source (newspaper).
@@ -161,6 +176,16 @@ class Article(object):
         self.download()
         self.parse()
         self.nlp()
+    
+    async def async_build(self):
+        """Build a lone article from a URL independent of the source (newspaper).
+        Don't normally call this method b/c it's good to multithread articles
+        on a source (newspaper) level.
+        """
+        await self.async_download()
+        self.parse()
+        self.nlp()
+        self.is_valid_body()
 
     def _parse_scheme_file(self, path):
         try:
@@ -174,7 +199,15 @@ class Article(object):
     def _parse_scheme_http(self):
         try:
             return network.get_html_2XX_only(self.url, self.config)
-        except requests.exceptions.RequestException as e:
+        except httpx.RequestError as e:
+            self.download_state = ArticleDownloadState.FAILED_RESPONSE
+            self.download_exception_msg = str(e)
+            return None
+    
+    async def _async_parse_scheme_http(self):
+        try:
+            return await network.async_get_html_2XX_only(self.url, self.config)
+        except httpx.RequestError as e:
             self.download_state = ArticleDownloadState.FAILED_RESPONSE
             self.download_exception_msg = str(e)
             return None
@@ -206,6 +239,31 @@ class Article(object):
                     input_html=network.get_html(meta_refresh_url),
                     recursion_counter=recursion_counter + 1)
 
+        self.set_html(html)
+        self.set_title(title)
+
+    async def async_download(self, input_html=None, title=None, recursion_counter=0):
+        """Downloads the link's HTML content, don't use if you are batch async
+        downloading articles
+
+        recursion_counter (currently 1) stops refreshes that are potentially
+        infinite
+        """
+        if input_html is None:
+            parsed_url = urlparse(self.url)
+            if parsed_url.scheme == "file": html = self._parse_scheme_file(parsed_url.path)
+            else: html = await self._async_parse_scheme_http()
+            if html is None:
+                log.debug('Download failed on URL %s because of %s' %
+                          (self.url, self.download_exception_msg))
+                return
+        else:
+            html = input_html
+
+        if self.config.follow_meta_refresh:
+            meta_refresh_url = extract_meta_refresh(html)
+            if meta_refresh_url and recursion_counter < 1:
+                return self.download( input_html=await network.async_get_html(meta_refresh_url), recursion_counter=recursion_counter + 1)
         self.set_html(html)
         self.set_title(title)
 
@@ -329,6 +387,8 @@ class Article(object):
         meta_type = self.extractor.get_meta_type(self.clean_doc)
         wordcount = self.text.split(' ')
         sentcount = self.text.split('.')
+        self.additional_data['num_words'] = len(wordcount)
+        self.additional_data['num_sentences'] = len(sentcount)
 
         if (meta_type == 'article' and len(wordcount) >
                 (self.config.MIN_WORD_COUNT)):

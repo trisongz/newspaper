@@ -1,7 +1,8 @@
 #!/bin/python2.7
 # -*- coding: utf-8 -*-
 """
-Lucas Ou-Yang 2014 -- http://codelucas.com
+Original Author: Lucas Ou-Yang 2014 -- http://codelucas.com
+Modified: Tri Songz 2021
 """
 
 import sys
@@ -47,12 +48,12 @@ with codecs.open('README.rst', 'r', 'utf-8') as f:
 
 setup(
     name='newspaper3k',
-    version='0.3.0',
+    version='0.3.1',
     description='Simplified python article discovery & extraction.',
     long_description=readme,
-    author='Lucas Ou-Yang',
-    author_email='lucasyangpersonal@gmail.com',
-    url='https://github.com/codelucas/newspaper/',
+    author='Tri Songz',
+    author_email='ts@growthengineai.com',
+    url='https://github.com/trisongz/newspaper/',
     packages=packages,
     include_package_data=True,
     install_requires=required,
